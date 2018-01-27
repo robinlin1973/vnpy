@@ -91,7 +91,8 @@ def loadMcCsv(fileName, dbName, symbol):
         bar.high = float(d['High'])
         bar.low = float(d['Low'])
         bar.close = float(d['Close'])
-        bar.date = datetime.strptime(d['Date'], '%Y-%m-%d').strftime('%Y%m%d')
+        # ROBINLIN bar.date = datetime.strptime(d['Date'], '%Y-%m-%d').strftime('%Y%m%d')
+        bar.date = d['Date']
         bar.time = d['Time']
         bar.datetime = datetime.strptime(bar.date + ' ' + bar.time, '%Y%m%d %H:%M:%S')
         bar.volume = d['TotalVolume']

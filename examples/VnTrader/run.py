@@ -61,11 +61,30 @@ def main():
     me.addApp(riskManager)
     me.addApp(ctaStrategy)
     me.addApp(spreadTrading)
-    
+
+    # 自动连接
+    #me.connect('CTP') # ROBIN LIN
+    me.connect('XSPEED') # ROBIN LIN
+
     # 创建主窗口
     mw = MainWindow(me, ee)
     mw.showMaximized()
-    
+
+    # 自动显示CTA策略窗口
+    for appDetail in mw.appDetailList:
+        if appDetail['appName'] == 'CtaStrategy':
+            appName = appDetail['appName']
+            try:
+                mw.widgetDict[appName].show()
+            except KeyError:
+                appEngine = mw.mainEngine.getApp(appName)
+                mw.widgetDict[appName] = appDetail['appWidget'](appEngine, mw.eventEngine)
+                mw.widgetDict[appName].show()
+
+
+
+
+
     # 在主线程中启动Qt事件循环
     sys.exit(qApp.exec_())
 

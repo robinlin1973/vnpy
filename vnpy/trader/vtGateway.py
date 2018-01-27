@@ -142,6 +142,13 @@ class VtGateway(object):
     def close(self):
         """关闭"""
         pass
+
+    def onInstrument(self,instrument):
+        # 通用事件
+        event1 = Event(type_=EVENT_INSTRUMENT)
+        event1.dict_['data'] = instrument
+        self.eventEngine.put(event1)
+        # print "onInstrument:: SEND EVENT_INSTRUMENT"
     
     
     

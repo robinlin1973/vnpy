@@ -12,6 +12,7 @@ OPEN_PRICE = u'开盘价'
 HIGH_PRICE = u'最高价'
 LOW_PRICE = u'最低价'
 TIME = u'时间'
+DATE = u'日期'
 GATEWAY = u'接口'
 CONTENT = u'内容'
 

@@ -193,7 +193,12 @@ class CtaTemplate(object):
     def saveSyncData(self):
         """保存同步数据到数据库"""
         self.ctaEngine.saveSyncData(self)
-    
+
+
+    def saveOrderData(self,order):
+        """保存订单数据到数据库"""
+        #self.ctaEngine.saveOrderData(self,order)
+        pass
 
 ########################################################################
 class TargetPosTemplate(CtaTemplate):
@@ -341,7 +346,7 @@ class BarManager(object):
         self.onXminBar = onXminBar  # X分钟K线的回调函数
         
         self.lastTick = None        # 上一TICK缓存对象
-        
+
     #----------------------------------------------------------------------
     def updateTick(self, tick):
         """TICK更新"""
@@ -414,8 +419,8 @@ class BarManager(object):
         # 通用部分
         self.xminBar.close = bar.close        
         self.xminBar.openInterest = bar.openInterest
-        self.xminBar.volume += int(bar.volume)                
-            
+        self.xminBar.volume += int(bar.volume)
+
         # X分钟已经走完
         if not (bar.datetime.minute + 1) % self.xmin:   # 可以用X整除
             # 生成上一X分钟K线的时间戳

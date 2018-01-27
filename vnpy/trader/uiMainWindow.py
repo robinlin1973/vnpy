@@ -40,6 +40,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.initCentral()
         self.initMenu()
         self.initStatusBar()
+
+        # ROBINLIN
+        #self.widgetDict['CtaStrategy'].show()
         
     #----------------------------------------------------------------------
     def initCentral(self):
@@ -148,6 +151,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.sbCount == self.sbTrigger:
             self.sbCount = 0
             self.statusLabel.setText(self.getCpuMemory())
+            #self.widgetDict['CtaStrategy'].show()
+
+        #self.widgetDict['CtaStrategy'].show()
     
     #----------------------------------------------------------------------
     def getCpuMemory(self):

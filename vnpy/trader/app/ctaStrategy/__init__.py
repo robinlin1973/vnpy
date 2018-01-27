@@ -8,3 +8,4 @@ appDisplayName = u'CTA策略'
 appEngine = CtaEngine
 appWidget = CtaEngineManager
 appIco = 'cta.ico'
+

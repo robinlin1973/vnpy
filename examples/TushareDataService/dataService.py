@@ -57,10 +57,11 @@ def downMinuteBarBySymbol(symbol):
     """下载某一合约的分钟线数据"""
     start = time()
 
+    cons = ts.get_apis()
     cl = db[symbol]
-    cl.ensure_index([('datetime', ASCENDING)], unique=True)         # 添加索引
-    
-    df = ts.bar(symbol, ktype='1min')
+    cl.ensure_index([('datetime', ASCENDING)], unique=True)  # 添加索引
+
+    df = ts.bar(symbol, conn=cons, freq='1min')
     df = df.sort_index()
     
     for ix, row in df.iterrows():

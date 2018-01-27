@@ -9,6 +9,7 @@ from vnpy.trader.app.ctaStrategy.ctaHistoryData import loadMcCsv
 
 
 if __name__ == '__main__':
-    loadMcCsv('IF0000_1min.csv', MINUTE_DB_NAME, 'IF0000')
-    loadMcCsv('rb0000_1min.csv', MINUTE_DB_NAME, 'rb0000')
+    # loadMcCsv('IF0000_1min.csv', MINUTE_DB_NAME, 'IF0000')
+    # loadMcCsv('rb0000_1min.csv', MINUTE_DB_NAME, 'rb0000')
+    loadMcCsv('i1805.csv', MINUTE_DB_NAME, 'i1805')
 

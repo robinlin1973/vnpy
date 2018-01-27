@@ -746,7 +746,7 @@ class CtpTdApi(TdApi):
             pos.ydPosition = data['Position']
             
         # 计算成本
-        size = self.symbolSizeDict[pos.symbol]
+        size = self.symbolSizeDict[pos.symbol]  #todo KeyError: 'i1805'
         cost = pos.price * pos.position * size
         
         # 汇总总仓
@@ -1130,7 +1130,8 @@ class CtpTdApi(TdApi):
     #----------------------------------------------------------------------
     def onRtnInstrumentStatus(self, data):
         """"""
-        pass
+        self.gateway.onInstrument(data)
+        #print "onRtnInstrumentStatus",data
         
     #----------------------------------------------------------------------
     def onRtnTradingNotice(self, data):
