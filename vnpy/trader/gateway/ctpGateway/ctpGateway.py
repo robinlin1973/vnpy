@@ -746,7 +746,16 @@ class CtpTdApi(TdApi):
             pos.ydPosition = data['Position']
             
         # 计算成本
-        size = self.symbolSizeDict[pos.symbol]  #todo KeyError: 'i1805'
+        try:
+            size = self.symbolSizeDict[pos.symbol]  #todo KeyError: 'i1805'
+        except KeyError:
+            log = VtLogData()
+            log.gatewayName = self.gatewayName
+            log.logContent = text.LOADING_ERROR
+            self.onLog(log)
+            return
+
+
         cost = pos.price * pos.position * size
         
         # 汇总总仓

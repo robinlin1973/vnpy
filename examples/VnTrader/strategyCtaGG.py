@@ -63,18 +63,18 @@ class CtaGGStrategy(CtaTemplate):
                'trading',
                'startPrice',
                'endPrice',
-               'priceGrid',
+               'price_grid',
                'posGrid',
-               'profit',
+               'PROFIT',
                'orderList'
              ]
 
     # 同步列表，保存了需要保存到数据库的变量名称
     syncList = ['startPrice',
                 'endPrice',
-                'priceGrid',
+                'price_grid',
                 'posGrid',
-                'profit',
+                'PROFIT',
                 'orderList'
               ]
 

@@ -303,7 +303,7 @@ class CtaEngine(object):
         data['updateTime'] = str(datetime.now().date()) #datetime.strptime('2018-01-24 20:55:22.355000','%Y-%m-%d %H:%M:%S.%f')
 
         self.mainEngine.dbUpdate(POSITION_DB_NAME,ORDER_COL_NAME, data, flt, True)
-        print "ctaEngine::processOrderEvent: udpate order {}".format(data)
+        #print "ctaEngine::processOrderEvent: udpate order {}".format(data)
         # # ------------------------------------------------ROBIN LIN
 
         if vtOrderID in self.orderStrategyDict:
@@ -314,7 +314,7 @@ class CtaEngine(object):
                 s = self.strategyOrderDict[strategy.name]
                 if vtOrderID in s:
                     s.remove(vtOrderID)
-                    print " 从策略委托号集合中{}移除{}".format(s,vtOrderID)
+                    #print " 从策略委托号集合中{}移除{}".format(s,vtOrderID)
 
             self.callStrategyFunc(strategy, strategy.onOrder, order)
 
@@ -327,6 +327,16 @@ class CtaEngine(object):
         if trade.vtTradeID in self.tradeSet:
             return
         self.tradeSet.add(trade.vtTradeID)
+
+
+        # ------------------------------------------------ROBIN LIN
+        """保存订单到数据库"""
+        flt = {'vtOrderID': trade.vtTradeID}
+        data = trade.__dict__
+
+        self.mainEngine.dbUpdate(POSITION_DB_NAME,TRADE_COL_NAME, data, flt, True)
+        #print "ctaEngine::processOrderEvent: udpate order {}".format(data)
+        # # ------------------------------------------------ROBIN LIN
 
         # 将成交推送到策略对象中
         if trade.vtOrderID in self.orderStrategyDict:
@@ -382,7 +392,7 @@ class CtaEngine(object):
         # ROBINLIN
         self.eventEngine.register(EVENT_ACCOUNT, self.processAccountEvent)
         self.eventEngine.register(EVENT_POSITION, self.processPositionEvent)
-        self.eventEngine.register(EVENT_INSTRUMENT, self.processInstrumentEvent)
+        #self.eventEngine.register(EVENT_INSTRUMENT, self.processInstrumentEvent)
 
     #----------------------------------------------------------------------
     def insertData(self, dbName, collectionName, data):
@@ -640,8 +650,8 @@ class CtaEngine(object):
         self.mainEngine.dbUpdate(POSITION_DB_NAME, strategy.className,
                                  d, flt, True)
 
-        content = '策略%s同步数据保存成功，当前持仓%s' %(strategy.name, strategy.pos)
-        print content
+        #content = '策略%s同步数据保存成功，当前持仓%s' %(strategy.name, strategy.pos)
+        #print content
     #---------------------------------------------------------------------- ROBINLIN
     def saveOrderData(self, strategy, order):  #processOrderEvent
         pass

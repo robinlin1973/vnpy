@@ -31,6 +31,7 @@ MINUTE_DB_NAME = 'VnTrader_1Min_Db'
 
 # 表格名称
 ORDER_COL_NAME = 'VnTrader_Order_Table'
+TRADE_COL_NAME = 'VnTrader_Trade_Table'
 
 # 引擎类型，用于区分当前策略的运行环境
 ENGINETYPE_BACKTESTING = 'backtesting'  # 回测

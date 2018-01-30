@@ -63,8 +63,8 @@ def main():
     me.addApp(spreadTrading)
 
     # 自动连接
-    #me.connect('CTP') # ROBIN LIN
-    me.connect('XSPEED') # ROBIN LIN
+    me.connect('CTP') # ROBIN LIN
+    #me.connect('XSPEED') # ROBIN LIN
 
     # 创建主窗口
     mw = MainWindow(me, ee)
