@@ -96,7 +96,7 @@ class CtaLLStrategy(CtaTemplate):
 
         self.init_database()
         self.scheduler = BackgroundScheduler()  # init the scheduler
-        self.scheduler.add_job(self.new_day_operation, 'cron', day_of_week='mon-fri', hour=18, minute=40)
+        self.scheduler.add_job(self.new_day_operation, 'cron', day_of_week='mon-fri', hour=8, minute=55)
         self.scheduler.add_job(self.close_day_operation, 'cron', day_of_week='mon-fri', hour=23, minute=31)
         self.scheduler.start()  # start scheduler for new_day_operation
         self.putEvent()
@@ -215,7 +215,7 @@ class CtaLLStrategy(CtaTemplate):
         self.pos = position.position
 
         if not self.inited or not self.trading:  # strategy not inited or not started
-            print ("onPositionEvent::策略未初始化/未启动，不处理position信息")
+           # print ("onPositionEvent::策略未初始化/未启动，不处理position信息")
             return
 
         total_position = 0

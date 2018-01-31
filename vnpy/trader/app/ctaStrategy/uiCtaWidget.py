@@ -11,6 +11,7 @@ from vnpy.trader.uiBasicWidget import QtGui, QtCore, QtWidgets, BasicCell
 
 from .ctaBase import EVENT_CTA_LOG, EVENT_CTA_STRATEGY
 from .language import text
+import collections
 
 
 ########################################################################
@@ -36,50 +37,46 @@ class CtaValueMonitor(QtWidgets.QTableWidget):
         self.setEditTriggers(self.NoEditTriggers)
 
         self.setColumnWidth(1, 150)
-        #Use setSectionResizeMode instead
-        #self.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch) #ROBINLIN
-        #ROBINLIN self.resizeColumnsToContents()
-
-        #self.setMaximumHeight(self.sizeHint().height())
-    """
-    #function added by ROBINLIN
-    def sizeHint(self):
-        height = QtWidgets.QTableWidget.sizeHint(self).height()
-
-        # length() includes the width of all its sections
-        width = self.horizontalHeader().length()
-
-        # you add the actual size of the vertical header and scrollbar
-        # (not the sizeHint which would only be the preferred size)
-        width += self.verticalHeader().width()
-        width += self.verticalScrollBar().width()
-
-        # and the margins which include the frameWidth and the extra
-        # margins that would be set via a stylesheet or something else
-        margins = self.contentsMargins()
-        width += margins.left() + margins.right()
-
-        return QtCore.QSize(width, height)
-    """
 
     #----------------------------------------------------------------------
     def updateData(self, data):
         """更新数据"""
         if not self.inited:
-            self.setColumnCount(len(data))
-            self.setHorizontalHeaderLabels(data.keys())
-            #self.setColumnWidth(1, 150)
+            if len(data)<5:
+                self.setColumnCount(len(data))
+                self.setHorizontalHeaderLabels(data.keys())
+                #self.setColumnWidth(1, 150)
 
-            col = 0
-            for k, v in data.items():
-                cell = QtWidgets.QTableWidgetItem(unicode(v))
-                self.keyCellDict[k] = cell
-                self.setItem(0, col, cell)
-                col += 1
+                col = 0
+                for k, v in data.items():
+                    cell = QtWidgets.QTableWidgetItem(unicode(v))
+                    self.keyCellDict[k] = cell
+                    self.setItem(0, col, cell)
+                    col += 1
+            elif len(data) >= 5:
+                self.setRowCount(len(data))
+                self.horizontalHeader().hide()
+                self.setColumnCount(1)
+                self.setVerticalHeaderLabels(data.keys())
+                self.verticalHeader().show()
+                #self.setHorizontalHeaderLabels(['Grid','Content'])
+                self.horizontalHeader().setStretchLastSection(True)
+
+
+                vol = 0
+                # od = collections.OrderedDict(sorted(data.items()))
+                # for k, v in od.iteritems():
+                for k, v in data.items():
+                    cell = QtWidgets.QTableWidgetItem(unicode(v))
+                    self.keyCellDict[k] = cell
+                    self.setItem(vol, 0, cell)
+                    vol += 1
 
             self.inited = True
         else:
+
             for k, v in data.items():
+            #for k in sorted(data.iterkeys()):
                 cell = self.keyCellDict[k]
                 cell.setText(unicode(v))
 
@@ -109,6 +106,8 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
 
         self.paramMonitor = CtaValueMonitor(self)
         self.varMonitor = CtaValueMonitor(self)
+        self.dictMonitor = CtaValueMonitor(self)
+        self.dictMonitor.setSortingEnabled(False)
 
         height = 65
         self.paramMonitor.setFixedHeight(height)
@@ -128,17 +127,20 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
         hbox1.addStretch()
 
         hbox2 = QtWidgets.QHBoxLayout()
-        self.paramMonitor.setFixedHeight(100) #ROBINLIN
         hbox2.addWidget(self.paramMonitor)
 
         hbox3 = QtWidgets.QHBoxLayout()
-        self.varMonitor.setFixedHeight(100) #ROBINLIN
         hbox3.addWidget(self.varMonitor)
+
+        # ROBINLIN add QTableWidget to show the control_dic
+        hbox4 = QtWidgets.QHBoxLayout()
+        hbox4.addWidget(self.dictMonitor)
 
         vbox = QtWidgets.QVBoxLayout()
         vbox.addLayout(hbox1)
         vbox.addLayout(hbox2)
         vbox.addLayout(hbox3)
+        vbox.addLayout(hbox4)
 
         self.setLayout(vbox)
 
@@ -153,6 +155,9 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
         if varDict:
             self.varMonitor.updateData(varDict)
 
+        controlDict = varDict['control_dict']
+        if controlDict:
+            self.dictMonitor.updateData(controlDict)
     #----------------------------------------------------------------------
     def registerEvent(self):
         """注册事件监听"""
@@ -173,6 +178,10 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
     def stop(self):
         """停止策略"""
         self.ctaEngine.stopStrategy(self.name)
+
+########################################################################
+class GridControlDict(QtWidgets.QTableWidget):
+    pass
 
 
 ########################################################################
