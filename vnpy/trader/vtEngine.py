@@ -249,9 +249,18 @@ class MainEngine(object):
             collection = db[collectionName]
             collection.replace_one(flt, d, upsert)
         else:
-            self.writeLog(text.DATA_UPDATE_FAILED)        
-            
-    #----------------------------------------------------------------------
+            self.writeLog(text.DATA_UPDATE_FAILED)
+
+    # ----------------------------------------------------------------------
+    def dbRemove(self, dbName, collectionName,flt):
+        """向MongoDB中更新数据，d是具体数据，flt是过滤条件，upsert代表若无是否要插入"""
+        if self.dbClient:
+            db = self.dbClient[dbName]
+            collection = db[collectionName]
+            collection.delete_many(flt)
+        else:
+            self.writeLog(text.DATA_REMOVE_FAILED)
+            #----------------------------------------------------------------------
     def dbLogging(self, event):
         """向MongoDB中插入日志"""
         log = event.dict_['data']

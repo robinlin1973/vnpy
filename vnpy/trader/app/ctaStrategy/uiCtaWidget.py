@@ -13,6 +13,58 @@ from .ctaBase import EVENT_CTA_LOG, EVENT_CTA_STRATEGY
 from .language import text
 import collections
 
+########################################################################
+class GridControlDictMonitor(QtWidgets.QTableWidget):
+    """参数监控"""
+
+    #----------------------------------------------------------------------
+    def __init__(self, parent=None):
+        """Constructor"""
+        super(GridControlDictMonitor, self).__init__(parent)
+        self.initUi()
+    #----------------------------------------------------------------------
+    def initUi(self):
+        """初始化界面"""
+    #     #self.setRowCount(1)
+        self.verticalHeader().setVisible(False)
+        self.setEditTriggers(self.NoEditTriggers)
+        self.horizontalHeader().setVisible(True)
+        self.setColumnCount(4)
+        self.setHorizontalHeaderLabels(['grid','buy_id','position','sell_id'])
+#        self.horizontalHeaderItem().setTextAlignment(QtGui.AlignHCenter)
+    #
+    #     self.setColumnWidth(1, 150)
+
+    #----------------------------------------------------------------------
+    def updateData(self, data):
+        """更新数据"""
+        od = collections.OrderedDict(sorted(data.items()))
+        length = len(od)
+        self.setRowCount(length)
+
+        for row in range(0, length):
+            grid, detail = od.items()[row]
+            for col in range(0,4):
+                item = QtWidgets.QTableWidgetItem()  # create the item
+                item.setTextAlignment(QtCore.Qt.AlignHCenter)
+                if col == 0:
+                    item.setText(grid)
+                elif col == 1:
+                    item.setText(str(detail['buy_id']))
+                elif col == 2:
+                    item.setText(str(detail['position']))
+                elif col == 3:
+                    item.setText(str(detail['sell_id']))
+
+                self.setItem(row, col, item)
+
+            if detail['buy_id'] == "" and detail['sell_id'] == "" and detail['position'] == 0:
+                self.setRowHidden(row, True)
+            else:
+                self.setRowHidden(row, False)
+                #print "hide grid:{} @row:{}".format(grid, row)
+
+
 
 ########################################################################
 class CtaValueMonitor(QtWidgets.QTableWidget):
@@ -42,39 +94,19 @@ class CtaValueMonitor(QtWidgets.QTableWidget):
     def updateData(self, data):
         """更新数据"""
         if not self.inited:
-            if len(data)<5:
-                self.setColumnCount(len(data))
-                self.setHorizontalHeaderLabels(data.keys())
-                #self.setColumnWidth(1, 150)
+            self.setColumnCount(len(data))
+            self.setHorizontalHeaderLabels(data.keys())
+            #self.setColumnWidth(1, 150)
 
-                col = 0
-                for k, v in data.items():
-                    cell = QtWidgets.QTableWidgetItem(unicode(v))
-                    self.keyCellDict[k] = cell
-                    self.setItem(0, col, cell)
-                    col += 1
-            elif len(data) >= 5:
-                self.setRowCount(len(data))
-                self.horizontalHeader().hide()
-                self.setColumnCount(1)
-                self.setVerticalHeaderLabels(data.keys())
-                self.verticalHeader().show()
-                #self.setHorizontalHeaderLabels(['Grid','Content'])
-                self.horizontalHeader().setStretchLastSection(True)
-
-
-                vol = 0
-                # od = collections.OrderedDict(sorted(data.items()))
-                # for k, v in od.iteritems():
-                for k, v in data.items():
-                    cell = QtWidgets.QTableWidgetItem(unicode(v))
-                    self.keyCellDict[k] = cell
-                    self.setItem(vol, 0, cell)
-                    vol += 1
+            col = 0
+            for k, v in data.items():
+                cell = QtWidgets.QTableWidgetItem(unicode(v))
+                self.keyCellDict[k] = cell
+                self.setItem(0, col, cell)
+                col += 1
 
             self.inited = True
         else:
-
             for k, v in data.items():
             #for k in sorted(data.iterkeys()):
                 cell = self.keyCellDict[k]
@@ -106,8 +138,7 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
 
         self.paramMonitor = CtaValueMonitor(self)
         self.varMonitor = CtaValueMonitor(self)
-        self.dictMonitor = CtaValueMonitor(self)
-        self.dictMonitor.setSortingEnabled(False)
+        self.dictMonitor = GridControlDictMonitor(self)
 
         height = 65
         self.paramMonitor.setFixedHeight(height)
@@ -178,10 +209,20 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
     def stop(self):
         """停止策略"""
         self.ctaEngine.stopStrategy(self.name)
-
-########################################################################
-class GridControlDict(QtWidgets.QTableWidget):
-    pass
+    #----------------------------------------------------------------------
+#     def initControlDict(self):
+#         """停止策略"""
+#         self.dictMonitor = QtWidgets.QTableWidget()
+#         self.table.setRowCount(5)
+#         self.table.setColumnCount(5)
+#         layout.addWidget(self.led, 0, 0)
+#         layout.addWidget(self.table, 1, 0)
+#         self.table.setItem(1, 0, QtGui.QTableWidgetItem(self.led.text()))
+#
+#
+# ########################################################################
+# class GridControlDict(QtWidgets.QTableWidget):
+#     pass
 
 
 ########################################################################

@@ -35,7 +35,7 @@ from vnpy.trader.vtFunction import todayDate, getJsonPath
 from .ctaBase import *
 from .strategy import STRATEGY_CLASS
 from pytz import timezone #ROBINLIN
-
+import json
 
 
 
@@ -141,6 +141,7 @@ class CtaEngine(object):
             self.orderStrategyDict[vtOrderID] = strategy                                 # 保存vtOrderID和策略的映射关系
             self.strategyOrderDict[strategy.name].add(vtOrderID)                         # 添加到策略委托号集合中
             print " 添加{}到策略委托号集合中{}".format(vtOrderID,self.strategyOrderDict[strategy.name])
+            #print "orderStrategyDict:{}".format(self.orderStrategyDict)
             vtOrderIDList.append(vtOrderID)
 
         self.writeCtaLog(u'策略%s发送委托，%s，%s，%s@%s'
@@ -296,15 +297,6 @@ class CtaEngine(object):
         """处理委托推送"""
         order = event.dict_['data']
         vtOrderID = order.vtOrderID
-        # ------------------------------------------------ROBIN LIN
-        """保存订单到数据库"""
-        flt = {'vtOrderID': vtOrderID}
-        data = order.__dict__
-        data['updateTime'] = str(datetime.now().date()) #datetime.strptime('2018-01-24 20:55:22.355000','%Y-%m-%d %H:%M:%S.%f')
-
-        self.mainEngine.dbUpdate(POSITION_DB_NAME,ORDER_COL_NAME, data, flt, True)
-        #print "ctaEngine::processOrderEvent: udpate order {}".format(data)
-        # # ------------------------------------------------ROBIN LIN
 
         if vtOrderID in self.orderStrategyDict:
             strategy = self.orderStrategyDict[vtOrderID]
@@ -314,7 +306,21 @@ class CtaEngine(object):
                 s = self.strategyOrderDict[strategy.name]
                 if vtOrderID in s:
                     s.remove(vtOrderID)
+                    print "strategyOrderDict[{}]:{}".format(strategy.name,repr(s).decode("unicode-escape"))
                     #print " 从策略委托号集合中{}移除{}".format(s,vtOrderID)
+
+            # ------------------------------------------------ROBIN LIN
+            # """保存订单到数据库"""
+            # flt = {'vtOrderID': vtOrderID}
+            # data = order.__dict__
+            # data['updateTime'] = str(
+            #     datetime.now().date())  # datetime.strptime('2018-01-24 20:55:22.355000','%Y-%m-%d %H:%M:%S.%f')
+            # collection_name = strategy.className + '_Order'
+            #
+            # self.mainEngine.dbUpdate(POSITION_DB_NAME, collection_name, data, flt, True)
+            # print "ctaEngine::processOrderEvent: insert order {} to collection{}"\
+            #     .format(repr(data).decode('unicode-escape'),collection_name)
+            # # ------------------------------------------------ROBIN LIN
 
             self.callStrategyFunc(strategy, strategy.onOrder, order)
 
@@ -328,16 +334,6 @@ class CtaEngine(object):
             return
         self.tradeSet.add(trade.vtTradeID)
 
-
-        # ------------------------------------------------ROBIN LIN
-        """保存订单到数据库"""
-        flt = {'vtOrderID': trade.vtTradeID}
-        data = trade.__dict__
-
-        self.mainEngine.dbUpdate(POSITION_DB_NAME,TRADE_COL_NAME, data, flt, True)
-        #print "ctaEngine::processOrderEvent: udpate order {}".format(data)
-        # # ------------------------------------------------ROBIN LIN
-
         # 将成交推送到策略对象中
         if trade.vtOrderID in self.orderStrategyDict:
             strategy = self.orderStrategyDict[trade.vtOrderID]
@@ -349,6 +345,18 @@ class CtaEngine(object):
                 strategy.pos -= trade.volume
 
             self.callStrategyFunc(strategy, strategy.onTrade, trade)
+
+            # ------------------------------------------------ROBIN LIN
+            # """保存订单到数据库"""
+            # flt = {'vtOrderID': trade.vtTradeID}
+            # data = trade.__dict__
+            #
+            # collection_name = strategy.className + '_Trade'
+            #
+            # self.mainEngine.dbUpdate(POSITION_DB_NAME,collection_name, data, flt, True)
+            # print "ctaEngine::processTradeEvent: insert Trade {} to collection{}"\
+            #     .format(repr(data).decode('unicode-escape'),collection_name)
+            # # ------------------------------------------------ROBIN LIN
 
             # 保存策略持仓到数据库
             self.saveSyncData(strategy)
@@ -685,38 +693,42 @@ class CtaEngine(object):
                 if key in d:
                     strategy.__setattr__(key, d[key])
 
-    #----------------------------------------------------------------------
-    def loadOrderByStatus(self, status_set=None):
-        print 'load orders by status set'
-
-        if not status_set:
-            flt ={}
-        else:
-            flt = {'status':{'$in':list(status_set)}}
-
-        result = self.mainEngine.dbQuery(POSITION_DB_NAME, ORDER_COL_NAME, flt)
-        return result
-        # print repr(result).decode("unicode-escape")
+    # #----------------------------------------------------------------------
+    # def loadOrderByStatus(self, status_set=None):
+    #     print 'load orders by status set'
+    #
+    #     if not status_set:
+    #         flt ={}
+    #     else:
+    #         flt = {'status':{'$in':list(status_set)}}
+    #
+    #     result = self.mainEngine.dbQuery(POSITION_DB_NAME, ORDER_COL_NAME, flt)
+    #     return result
+    #     # print repr(result).decode("unicode-escape")
 
     # ----------------------------------------------------------------------
-    def loadOrderByDate(self, dt=None):
-        if not dt:
-            dt = datetime.today().date()
-        flt = {'updateTime':{'$eq':str(dt)}}
-        result = self.mainEngine.dbQuery(POSITION_DB_NAME, ORDER_COL_NAME,flt)
-        return result
+    # def loadOrderByDate(self, dt=None):
+    #     if not dt:
+    #         dt = datetime.today().date()
+    #     flt = {'updateTime':{'$eq':str(dt)}}
+    #     result = self.mainEngine.dbQuery(POSITION_DB_NAME, ORDER_COL_NAME,flt)
+    #     return result
     # ----------------------------------------------------------------------
-    def removeOldOrder(self, dt=None):
+    def removeOldOrder(self,strategy_name, dt=None):
         if not dt:
             dt = datetime.today().date()
-        flt = {'updateTime':{'$ne':dt}}
-        result = self.mainEngine.dbReomve(POSITION_DB_NAME, ORDER_COL_NAME,flt)
+        flt = {'updateTime':{'$ne':str(dt)}}
+        collection_name = strategy_name + '_Order'
+        result = self.mainEngine.dbRemove(POSITION_DB_NAME, collection_name,flt)
         return result
+
+
     #----------------------------------------------------------------------
-    def loadOrderByID(self,vtOrderID):
+    def loadOrderByID(self,strategy_name,vtOrderID):
         """查询单个订单"""
         flt = {'vtOrderID':vtOrderID}
-        cursor = self.mainEngine.dbQuery(POSITION_DB_NAME, ORDER_COL_NAME,flt)
+        collection_name = strategy_name + '_Order'
+        cursor = self.mainEngine.dbQuery(POSITION_DB_NAME, collection_name,flt)
 
         #print "loadOrderByID:" + repr(cursor)
         return cursor
