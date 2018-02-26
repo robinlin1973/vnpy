@@ -145,7 +145,7 @@ class CtaLLStrategy(CtaTemplate):
     #----------------------------------------------------------------------
     def onTick(self, tick):
         """收到行情TICK推送"""
-        #print "收到行情TICK推送"
+        # print "收到行情TICK推送"
         if not self.inited or not self.trading:# or not self.is_Trading_Slot():  # strategy not inited or not started
             #print ("onTick::策略未初始化/未启动不处理tick信息{}")
             return

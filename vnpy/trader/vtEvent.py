@@ -20,3 +20,4 @@ EVENT_CONTRACT = 'eContract.'           # 合约基础信息回报事件
 EVENT_ERROR = 'eError.'                 # 错误回报事件
 
 EVENT_INSTRUMENT = 'eInstrument.'      # ROBIN LIN
+EVENT_MARKETDATA = 'eMarket'
