@@ -290,7 +290,7 @@ class CtaEngineManager(QtWidgets.QWidget):
         # ROBINLIN 窗口显示后，立即加载和初始化策略。
         self.load()
         self.initAll()
-
+        self.startAll()
 
     #----------------------------------------------------------------------
     def initStrategyManager(self):

@@ -60,7 +60,7 @@ def main():
     # 添加上层应用
     me.addApp(riskManager)
     me.addApp(ctaStrategy)
-    me.addApp(spreadTrading)
+#    me.addApp(spreadTrading)
 
     # 自动连接
     me.connect('CTP') # ROBIN LIN

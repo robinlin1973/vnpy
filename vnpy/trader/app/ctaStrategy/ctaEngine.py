@@ -365,7 +365,7 @@ class CtaEngine(object):
     # ROBINLIN
     def processAccountEvent(self,event):
         """账户资金更新"""
-        # self.writeCtaLog("processAccountEvent::账户资金更新" )
+        #self.writeCtaLog("processAccountEvent::账户资金更新" )
 
         account = event.dict_['data']
         for name in self.strategyDict.keys():
@@ -376,7 +376,7 @@ class CtaEngine(object):
     def processPositionEvent(self, event):
 
         """持仓更新"""
-        # self.writeCtaLog("processPositionEvent::持仓更新")
+        #self.writeCtaLog("processPositionEvent::持仓更新")
 
         position = event.dict_['data']
         for name in self.strategyDict.keys():

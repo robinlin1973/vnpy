@@ -46,6 +46,8 @@ class CtaLLStrategy(CtaTemplate):
     STATUS_INVALID = set([STATUS_REJECTED, STATUS_CANCELLED])
     STATUS_VALID = set([STATUS_NOTTRADED, STATUS_PARTTRADED,STATUS_ALLTRADED])
 
+    POS_PER_GRID = 2 #每网格对应的仓位
+
     # 策略变量
     price_grid = [] # [453.00 + i* 10.0  for i in range(0,10)]
     control_dict = {}
@@ -102,11 +104,10 @@ class CtaLLStrategy(CtaTemplate):
         """初始化策略（必须由用户继承实现）"""
         self.writeCtaLog(u'策略初始化')
 
-        #self.init_database()
-        self.scheduler = BackgroundScheduler()  # init the scheduler
-        self.scheduler.add_job(self.new_day_operation, 'cron', day_of_week='mon-fri', hour=8, minute=55)
-        self.scheduler.add_job(self.close_day_operation, 'cron', day_of_week='mon-fri', hour=23, minute=31)
-        self.scheduler.start()  # start scheduler for new_day_operation
+        # self.scheduler = BackgroundScheduler()  # init the scheduler
+        # self.scheduler.add_job(self.new_day_operation, 'cron', day_of_week='mon-fri', hour=8, minute=55)
+        # self.scheduler.add_job(self.close_day_operation, 'cron', day_of_week='mon-fri', hour=23, minute=31)
+        # self.scheduler.start()  # start scheduler for new_day_operation
         self.putEvent()
 
     #----------------------------------------------------------------------
@@ -121,22 +122,16 @@ class CtaLLStrategy(CtaTemplate):
     def new_day_init(self,dt = None):
         """新交易日初始化"""
         print "新交易日初始化"
+        self.cancelAll()
         self.tick_number = self.TICK_COUNTER  # each X ticks, call tick_rebalance
-        if dt == None:
-            dt = datetime.now().date()
-
-        self.ctaEngine.removeOldOrder(self.className,dt)
-        #self.syncWithOrderDB()  # sync the control_dict with database
+        sleep(10)
         self.syncWithOrderDict()
     #----------------------------------------------------------------------
     def onStop(self):
         """停止策略"""
-#        self.scheduler.shutdown() # end scheduler for new_day_operation
         self.trading = False
-        #if self.is_Trading_Slot():
-        #self.cancelAll()    #stopStrategy of ctaEngine will call cancelAll then call onStop of strategy
-
-        #self.syncWithOrderDB()
+        self.cancelAll()    #stopStrategy of ctaEngine will call cancelAll then call onStop of strategy
+        sleep(10)
         self.syncWithOrderDict()
         # 同步数据到数据库
         self.saveSyncData()
@@ -171,7 +166,7 @@ class CtaLLStrategy(CtaTemplate):
             self.tick_number = self.TICK_COUNTER
             self.lower_limit = tick.lowerLimit
             self.upper_limit = tick.upperLimit
-            print ("onTick::每收到{}个TICK,再平衡仓位...@{},涨停{}跌停{}".format(self.TICK_COUNTER, tick.time,self.upper_limit,self.lower_limit))
+            print ("onTick::每收到{}个TICK,再平衡仓位...@{},涨停{}跌停{} 最新价{}".format(self.TICK_COUNTER, tick.time, self.upper_limit,self.lower_limit, tick.lastPrice))
             #self.tick_rebalance(tick) #  以什么价格tick.askprice1买进
             self.rebalance(tick)
 
@@ -211,7 +206,7 @@ class CtaLLStrategy(CtaTemplate):
                     """无仓位，无对应BUY单，以现价或网格价（选低价，且价格在涨跌停之间）挂BUY单"""
                     buyPrice = min(int(grid), tick.askPrice1)
                     if tick.lowerLimit < buyPrice < tick.upperLimit:
-                        vtOrderIDList = self.buy(buyPrice, 1)
+                        vtOrderIDList = self.buy(buyPrice, self.POS_PER_GRID)
                         if vtOrderIDList:
                             record['buy_id'] = vtOrderIDList[0]
                             print ('tick_rebalance：发buy单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
@@ -230,7 +225,7 @@ class CtaLLStrategy(CtaTemplate):
                     """无仓位，无对应SHORT单，以现价或网格价（选高价，且价格在涨跌停之间）挂SHORT单"""
                     shortPrice = max(int(grid),tick.bidPrice1)
                     if tick.lowerLimit < shortPrice < tick.upperLimit:
-                        vtOrderIDList = self.short(shortPrice, 1)
+                        vtOrderIDList = self.short(shortPrice, self.POS_PER_GRID)
                         if vtOrderIDList:
                             record['sell_id'] = vtOrderIDList[0]
                             print ('tick_rebalance：发short单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
@@ -382,9 +377,13 @@ class CtaLLStrategy(CtaTemplate):
         for grid, record in self.control_dict.items():
             if record['buy_id'] != "":
                 if record['buy_id'] not in self.ctaEngine.strategyOrderDict[self.name]:# no order find in the Order database
+                    self.ctaEngine.cancelOrder(record['buy_id'])
+                    print('buy order:{} not in strategyOrderDict,cancelling....'.format(record['buy_id']))
                     record['buy_id'] = ""
             elif record['sell_id'] != "":
                 if record['sell_id'] not in self.ctaEngine.strategyOrderDict[self.name]:
+                    self.ctaEngine.cancelOrder(record['sell_id'])
+                    print('sell order:{} not in strategyOrderDict,cancelling....'.format(record['sell_id']))
                     record['sell_id'] = ""
 
         self.saveSyncData()
