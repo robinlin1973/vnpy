@@ -34,7 +34,8 @@ from vnpy.trader.language import text
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
 import winsound
-from pprint import pprint
+from pprint import pprint,pformat
+from msg_my import init_mail_server, send_email
 
 ########################################################################
 class CtaLLStrategy(CtaTemplate):
@@ -78,6 +79,8 @@ class CtaLLStrategy(CtaTemplate):
     syncList = ['price_grid',
                 'control_dict'
               ]
+    mailServer = None
+
 
     #----------------------------------------------------------------------
     def __init__(self, ctaEngine, setting):
@@ -117,11 +120,15 @@ class CtaLLStrategy(CtaTemplate):
         self.trading = True
         self.putEvent()
         self.get_dense_control_dict(True)
+        self.mailServer = init_mail_server()
+        send_email(self.mailServer,
+            '当前网格\n{}'.format(pformat(self.get_dense_control_dict(), indent=4)),
+            "策略启动@{}".format(datetime.now().time()))
 
     # ----------------------------------------------------------------------
     def new_day_init(self,dt = None):
         """新交易日初始化"""
-        print "新交易日初始化"
+        self.writeCtaLog(u"新交易日初始化")
         self.cancelAll()
         self.tick_number = self.TICK_COUNTER  # each X ticks, call tick_rebalance
         sleep(10)
@@ -136,6 +143,7 @@ class CtaLLStrategy(CtaTemplate):
         # 同步数据到数据库
         self.saveSyncData()
         self.putEvent()
+        self.mailServer.close()
 
     #----------------------------------------------------------------------
     def onTick(self, tick):
@@ -166,35 +174,13 @@ class CtaLLStrategy(CtaTemplate):
             self.tick_number = self.TICK_COUNTER
             self.lower_limit = tick.lowerLimit
             self.upper_limit = tick.upperLimit
-            print ("onTick::每收到{}个TICK,再平衡仓位...@{},涨停{}跌停{} 最新价{}".format(self.TICK_COUNTER, tick.time, self.upper_limit,self.lower_limit, tick.lastPrice))
+            self.writeCtaLog( "onTick::每收到{}个TICK,再平衡仓位...@{},涨停{}跌停{} 最新价{}".format(self.TICK_COUNTER, tick.time, self.upper_limit,self.lower_limit, tick.lastPrice))
             #self.tick_rebalance(tick) #  以什么价格tick.askprice1买进
             self.rebalance(tick)
 
         # print ("onTick::同步数据到数据库")
         self.putEvent()
 
-    # ----------------------------------------------------------------------
-    def tick_rebalance(self,tick):
-        """根据最新价格调整仓位"""
-        for grid,record in self.control_dict.items():
-            vtOrderIDList = []
-            sellPrice = float(grid) + self.PROFIT
-            if record["position"] > 0 and sellPrice < tick.upperLimit and record['sell_id']=="": # has position
-                """如网格有仓位无卖单，网格价+利润（15）挂卖单"""
-                vtOrderIDList = self.sell(sellPrice,record["position"])
-                if vtOrderIDList:
-                    record['sell_id'] = vtOrderIDList[0]
-                    print ('tick_rebalance：发卖单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
-            elif tick.lowerLimit < int(grid) < tick.upperLimit and record["position"] == 0 and record['buy_id'] == "":
-                """如网格在涨跌停价之间，无对应仓位及买单，以现价或网格价（选低价）挂买单"""
-                buyPrice = min(int(grid),tick.askPrice1)
-                vtOrderIDList = self.buy(buyPrice, 1)
-                if vtOrderIDList:
-                    record['buy_id'] =  vtOrderIDList[0]
-                    print ('tick_rebalance：发买单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
-
-        # 同步数据到数据库
-        self.saveSyncData()
     # ----------------------------------------------------------------------
     def rebalance(self,tick):
         """根据最新价格调整仓位,加入支持空单"""
@@ -209,7 +195,7 @@ class CtaLLStrategy(CtaTemplate):
                         vtOrderIDList = self.buy(buyPrice, self.POS_PER_GRID)
                         if vtOrderIDList:
                             record['buy_id'] = vtOrderIDList[0]
-                            print ('tick_rebalance：发buy单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
+                            self.writeCtaLog('rebalance：发buy单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
                 elif record["position"] > 0 and record['sell_id']=="":
                     """如网格有仓位无SELL单，以网格价+利润或现价（选高价，且价格在涨跌停之间）挂SELL单"""
                     sellPrice = max(float(grid) + self.PROFIT,tick.bidPrice1)
@@ -217,7 +203,7 @@ class CtaLLStrategy(CtaTemplate):
                         vtOrderIDList = self.sell(sellPrice, record["position"])
                         if vtOrderIDList:
                             record['sell_id'] = vtOrderIDList[0]
-                            print ('tick_rebalance：发sell单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
+                            self.writeCtaLog('rebalance：发sell单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
 
             elif int(grid) > self.START2SHORT:
                 # print "网格点:{} 位于空区[553,563,573,583,593]".format(grid)
@@ -228,7 +214,7 @@ class CtaLLStrategy(CtaTemplate):
                         vtOrderIDList = self.short(shortPrice, self.POS_PER_GRID)
                         if vtOrderIDList:
                             record['sell_id'] = vtOrderIDList[0]
-                            print ('tick_rebalance：发short单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
+                            self.writeCtaLog('rebalance：发short单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
                 elif record["position"] > 0 and record['buy_id']=="":
                     """如网格有空仓无COVER单，以网格价-利润或现价（选低价，且价格在涨跌停之间）挂COVER单"""
                     coverPrice = min(int(grid) - self.PROFIT, tick.askPrice1)
@@ -236,7 +222,7 @@ class CtaLLStrategy(CtaTemplate):
                         vtOrderIDList = self.cover(shortPrice, record['position'])
                         if vtOrderIDList:
                             record['buy_id'] = vtOrderIDList[0]
-                            print ('tick_rebalance：发cover单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
+                            self.writeCtaLog('rebalance：发cover单control_dict[{}]:{}'.format(grid, self.control_dict[grid]))
                     pass
 
         # 同步数据到数据库
@@ -247,7 +233,7 @@ class CtaLLStrategy(CtaTemplate):
         # ----------------------------------------------------------------------
     def onOrder(self, order):
         """收到委托变化推送（必须由用户继承实现）"""
-        print ( "onOrder::{}".format(repr(order.__dict__)).decode('unicode-escape'))
+        self.writeCtaLog ( "onOrder::{}".format(repr(order.__dict__)).decode('unicode-escape'))
 
         found = False
         for grid, record in self.control_dict.items():
@@ -262,7 +248,7 @@ class CtaLLStrategy(CtaTemplate):
                     record["sell_id"] = ""
 
         if found == False:
-            print "onOrder::ERROR 订单不在控制表中，请仔细核对:{}\n 订单:{}".format(self.get_dense_control_dict(), repr(order.__dict__).decode('unicode-escape'))
+            self.writeCtaLog("onOrder::ERROR 订单不在控制表中，请仔细核对:{}\n 订单:{}".format(self.get_dense_control_dict(), repr(order.__dict__).decode('unicode-escape')))
             return
 
         if order.status == STATUS_REJECTED:
@@ -273,7 +259,7 @@ class CtaLLStrategy(CtaTemplate):
 
         # 同步数据到数据库
         self.saveSyncData()
-        print ("onOrder::同步数据到数据库")
+        self.writeCtaLog("onOrder::同步数据到数据库")
         self.putEvent()
 
 
@@ -301,6 +287,8 @@ class CtaLLStrategy(CtaTemplate):
     #----------------------------------------------------------------------
     def onTrade(self, trade):
         self.writeCtaLog("onTrade::成交确认{}".format(trade.__dict__))
+
+        #send_email()
         winsound.Beep(2500, 1000)
 
         # 更新网格仓位字典
@@ -310,68 +298,45 @@ class CtaLLStrategy(CtaTemplate):
                 if trade.vtOrderID == record["buy_id"]:
                     record["buy_id"] = ""
                     found = True
-                    print "onTrade::网格{}买单{}以价格{}买入{} 之前持仓：{}".format(grid, trade.vtOrderID, trade.price, trade.volume,record["position"])
+                    self.writeCtaLog("onTrade::网格{}买单{}以价格{}买入{} 之前持仓：{}".format(grid, trade.vtOrderID, trade.price, trade.volume,record["position"]))
                     record["position"] += trade.volume
-                    print "onTrade::网格{}买单{}以价格{}买入{} 之后持仓：{}".format(grid, trade.vtOrderID, trade.price, trade.volume,record["position"])
+                    self.writeCtaLog("onTrade::网格{}买单{}以价格{}买入{} 之后持仓：{}".format(grid, trade.vtOrderID, trade.price, trade.volume,record["position"]))
                     break
             elif trade.direction == DIRECTION_SHORT:  # CTAORDER_SELL:
                 if trade.vtOrderID == record["sell_id"]:
                     record["sell_id"]=""
                     found = True
-                    print "onTrade::网格{}卖单{}以价格{}卖出{} 之前持仓：{}".format(grid, trade.vtOrderID, trade.price, trade.volume,record["position"])
+                    self.writeCtaLog("onTrade::网格{}卖单{}以价格{}卖出{} 之前持仓：{}".format(grid, trade.vtOrderID, trade.price, trade.volume,record["position"]))
                     if record["position"] >= trade.volume:
                         record["position"] -= trade.volume
-                        print "onTrade::网格{}卖单{}以价格{}卖出{} 之后持仓：{}".format(grid, trade.vtOrderID, trade.price,trade.volume, record["position"])
+                        self.writeCtaLog("onTrade::网格{}卖单{}以价格{}卖出{} 之后持仓：{}".format(grid, trade.vtOrderID, trade.price,trade.volume, record["position"]))
                         break
 
         if found == False:
 #            self.onStop()
-            print "onTrade::ERROR 成交不在控制表中，请仔细核对:{}\n 成交:{}".format(self.control_dict,repr(trade.__dict__).decode('unicode-escape'))
+            self.writeCtaLog("onTrade::ERROR 成交不在控制表中，请仔细核对:{}\n 成交:{}".format(self.control_dict,repr(trade.__dict__).decode('unicode-escape')))
             return
         # -----------------------------------------------------------------------------------
         # 同步数据到数据库   ？这步多余？ processTradeEvent in ctaEngine.py has the same operation
         self.saveSyncData()
-        print ("onTrade::同步数据到数据库")
         # 发出状态更新事件
         self.putEvent()
+
+        send_email(self.mailServer,
+                   '当前网格\n{}'.format(pformat(self.get_dense_control_dict(), indent=4)),
+                   '成交确认:订单[{}] 价格[{}] 方向[{}] 成交{}手'.format(trade.vtOrderID, trade.price, trade.direction, trade.volume)
+                   )
 
     #----------------------------------------------------------------------
     def onStopOrder(self, so):
         """停止单推送"""
         pass
 
-    # ----------------------------------------------------------------------
-    def syncWithOrderDB(self):
-        """把控制表状态和订单数据库同步，在策略启动和停止的时候调用？"""
-        print "syncWithOrderDB:把控制表状态和订单数据库同步，在策略启动和停止的时候调用"
-        for grid, record in self.control_dict.items():
-            if record['buy_id'] != "":
-                cursor = self.ctaEngine.loadOrderByID(self.className,record['buy_id'])
-                if not cursor:# no order find in the Order database
-                    #print "syncWithOrderDB:no order found,reset buy_id {} at grid {} to empty".format(record['buy_id'],grid)
-                    record['buy_id'] = ""
-                elif len(cursor) == 1 and cursor[0]["status"] in self.STATUS_FINISHED:
-                    #print "syncWithOrderDB:order finished,reset buy_id {} at grid {} to empty".format(record['buy_id'],grid)
-                    record['buy_id'] = ""
-                elif len(cursor) > 1:
-                    print "syncWithOrderDB:multiple id {} in database at grid {}".format(record['buy_id'],grid)
-            elif record['sell_id'] != "":
-                cursor = self.ctaEngine.loadOrderByID(self.className,record['sell_id'])
-                if not cursor:
-                    #print "syncWithOrderDB:no order found,reset sell_id {} at grid {} to empty".format(record['sell_id'],grid)
-                    record['sell_id'] = ""
-                elif len(cursor) == 1 and cursor[0]["status"] in self.STATUS_FINISHED:
-                    #print "syncWithOrderDB:order finished,reset sell_id {} at grid {} to empty".format(record['sell_id'],grid)
-                    record['sell_id'] = ""
-                elif len(cursor) > 1:
-                    print "syncWithOrderDB:multiple id {} in database at grid {}".format(record['sell_id'], grid)
-
-        self.saveSyncData()
 
     # ----------------------------------------------------------------------
     def syncWithOrderDict(self):
         """把控制表状态和订单数据库同步，在策略启动和停止的时候调用？"""
-        print "syncWithOrderDict:把控制表状态和订单字典同步，在策略启动和新交易日的时候调用"
+        self.writeCtaLog("syncWithOrderDict:把控制表状态和订单字典同步，在策略启动和新交易日的时候调用")
         self.get_dense_control_dict(True)
         print "strategyOrderDict[{}]:{}".format(self.name,self.ctaEngine.strategyOrderDict[self.name])
         for grid, record in self.control_dict.items():
@@ -416,130 +381,13 @@ class CtaLLStrategy(CtaTemplate):
 
     # ----------------------------------------------------------------------
     def get_dense_control_dict(self,print_flag = False):
-        if print_flag:
-            print "当前网格控制表："
         dense_control_dict = {}
         for grid, record in self.control_dict.items():
             if record['buy_id']!="" or record['sell_id']!="" or record['position']!= 0:
                 dense_control_dict[grid] = record
 
         if print_flag:
+            print "当前网格控制表："
             pprint(dense_control_dict)
 
         return dense_control_dict
-
-    # # ----------------------------------------------------------------------
-    #
-    # def getOrderTable(self):
-    #     result = self.ctaEngine.loadOrderByStatus(self.STATUS_FINISHED)
-    #     print "strategyCtaLL:getOrderTable" + repr(result).decode("unicode-escape")
-    #     print "strategyCtaLL:getOrderTable result length {}".format(len(result))
-    # # ----------------------------------------------------------------------
-    # def getOrderByDate(self, dt = None):
-    #     result = self.ctaEngine.loadOrderByDate(dt)
-    #     print "strategyCtaLL:getOrderByDate" + repr(result).decode("unicode-escape")
-    #     print "strategyCtaLL:getOrderByDate result length {}".format(len(result))
-    # #----------------------------------------------------------------------
-    # def onBar(self, bar):
-    #     """收到Bar推送（必须由用户继承实现）"""
-    #     self.writeCtaLog('onBar')
-    #     #self.bm.updateBar(bar)
-    #     am = self.am
-    #     am.updateBar(bar)
-
-    # ----------------------------------------------------------------------
-    # def init_position(self, tick):
-    #     """初始化仓位"""
-    #     self.writeCtaLog('init_position：当前仓位：{},初始化仓位'.format(self.pos))
-    #
-    #     # 填满现价以上的网格
-    #     grids = [str(i) for i in self.price_grid if int(i) > tick.askPrice1]
-    #     for grid in grids:
-    #         if self.control_dict[grid]['buy_id'] == "" and self.control_dict[grid]['position'] == 0:  # always make sure no conflict order on same grid
-    #             vtOrderIDList = self.buy(tick.askPrice1, 1)  # TODO, 如果未成交该如何处理
-    #             if vtOrderIDList:
-    #                 self.control_dict[grid]['buy_id'] =  vtOrderIDList[0]
-    #                 print ('init_position：control_dict[{}]:{}'.format(grid,self.control_dict[grid]))/
-
-
-    # #----------------------------------------------------------------------
-    # def is_Trading_Time(self,now=None): #当前是否在交易时段
-    #     if not now:
-    #         now = datetime.now()
-    #     now_workday = now.weekday()   #wrong!need to check the tick date
-    #     now_time = now.time()
-    #     if now_workday < 5 \
-    #         and (time(9,0)< now_time < time(10,15) or time(10,30)< now_time < time(11,30) \
-    #         or time(13,30)< now_time < time(15,30) or time(21,0)< now_time < time(23,30) ):
-    #         return True
-    #     else:
-    #         return False
-
-    #----------------------------------------------------------------------
-    # def is_Trading_Slot(self,now=None):#是否在开盘和收盘时间之间
-    #     if not now:
-    #         now = datetime.now()
-    #     now_workday = now.weekday()   #wrong!need to check the tick date
-    #     now_time = now.time()
-    #     if now_workday < 5 and (time(9,0)< now_time < time(23,30)):
-    #         return True
-    #     else:
-    #         return False
-
-    # ----------------------------------------------------------------------
-    # def init_database(self):
-    #     """连接MongoDB数据库"""
-    #     if not self.dbClient:
-    #         # 读取MongoDB的设置
-    #         try:
-    #             # 设置MongoDB操作的超时时间为0.5秒
-    #             self.dbClient = MongoClient(globalSetting['mongoHost'], globalSetting['mongoPort'])
-    #             # 调用server_info查询服务器状态，防止服务器异常并未连接成功
-    #             self.dbClient.server_info()
-    #             print "strategyCtaLL::init_database:" + text.DATABASE_CONNECTING_COMPLETED
-    #
-    #         except ConnectionFailure:
-    #             print "strategyCtaLL::init_database:" + text.DATABASE_CONNECTING_FAILED
-
-    # ----------------------------------------------------------------------
-    # def removeOldOrder(self):
-    #     """清除订单数据库非当日订单"""
-    #     db = self.dbClient[POSITION_DB_NAME]
-    #     collection_name = self.className + '_Order'
-    #     collection = db[collection_name]
-    #     dt = str(datetime.now().date())
-    #     flt = {'updateTime': {'$ne': dt}}
-    #     result = collection.delete_many(flt)
-    #
-    #     print "strategyCtaLL::removeOldOrder: 清除订单数据库非当日{}订单,结果:{}".format(dt,result.__dict__)
-
-    # ----------------------------------------------------------------------
-    # def cancelAll(self):
-    #      print "cancelAll::取消所有委托"
-    #      for grid, record in self.control_dict.items():
-    #          if record['buy_id']!="":
-    #              vtOrderID = record['buy_id']
-    #              print ("cancelAll::取消网格{}处买单{}".format(grid,vtOrderID))
-    #              if STOPORDERPREFIX in vtOrderID:
-    #                  self.ctaEngine.cancelStopOrder(vtOrderID)
-    #              else:
-    #                  self.ctaEngine.cancelOrder(vtOrderID)
-    #          elif record['sell_id']!="":
-    #              vtOrderID = record['sell_id']
-    #              self.writeCtaLog("cancelAll::取消网格{}处卖单{}".format(grid,vtOrderID))
-    #              if STOPORDERPREFIX in vtOrderID:
-    #                   self.ctaEngine.cancelStopOrder(vtOrderID)
-    #              else:
-    #                 self.ctaEngine.cancelOrder(vtOrderID)
-    #
-    #      self.putEvent()
-
-
-     # ----------------------------------------------------------------------
-    # def no_activated_order(self):
-    #     """控制表中无有效订单"""
-    #     for grid, record in self.control_dict.items():
-    #         if record['buy_id']!="" or record['sell_id']!="":
-    #             return False
-    #
-    #     return True
