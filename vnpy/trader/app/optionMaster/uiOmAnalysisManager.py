@@ -67,7 +67,7 @@ class ScenarioValueMonitor(QtWidgets.QTableWidget):
                     red -= abs(colorValue)
                 else:
                     green -= abs(colorValue)                
-                color = QtGui.QColor(red, green, 0)
+                color = QtWidgets.QColor(red, green, 0)
                 
                 # 插入单元格到表格中
                 cell = QtWidgets.QTableWidgetItem('%.1f' %value)

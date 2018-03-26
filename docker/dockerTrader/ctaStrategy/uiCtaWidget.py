@@ -5,13 +5,13 @@ CTA模块相关的GUI控制组件
 '''
 
 
-from uiBasicWidget import QtGui, QtCore, BasicCell
+from uiBasicWidget import QtWidgets, QtCore, BasicCell
 from eventEngine import *
 from language import text
 
 
 ########################################################################
-class CtaValueMonitor(QtGui.QTableWidget):
+class CtaValueMonitor(QtWidgets.QTableWidget):
     """参数监控"""
 
     #----------------------------------------------------------------------
@@ -46,7 +46,7 @@ class CtaValueMonitor(QtGui.QTableWidget):
 
             col = 0
             for k, v in data.items():
-                cell = QtGui.QTableWidgetItem(unicode(v))
+                cell = QtWidgets.QTableWidgetItem(unicode(v))
                 self.keyCellDict[k] = cell
                 self.setItem(0, col, cell)
                 col += 1
@@ -61,7 +61,7 @@ class CtaValueMonitor(QtGui.QTableWidget):
 
 
 ########################################################################
-class CtaStrategyManager(QtGui.QGroupBox):
+class CtaStrategyManager(QtWidgets.QGroupBox):
     """策略管理组件"""
     signal = QtCore.pyqtSignal(type(Event()))
 
@@ -90,28 +90,28 @@ class CtaStrategyManager(QtGui.QGroupBox):
         #ROBINLIN self.paramMonitor.setFixedHeight(height)
         #ROBINLIN self.varMonitor.setFixedHeight(height)
 
-        buttonInit = QtGui.QPushButton(text.INIT)
-        buttonStart = QtGui.QPushButton(text.START)
-        buttonStop = QtGui.QPushButton(text.STOP)
+        buttonInit = QtWidgets.QPushButton(text.INIT)
+        buttonStart = QtWidgets.QPushButton(text.START)
+        buttonStop = QtWidgets.QPushButton(text.STOP)
         buttonInit.clicked.connect(self.init)
         buttonStart.clicked.connect(self.start)
         buttonStop.clicked.connect(self.stop)
 
-        hbox1 = QtGui.QHBoxLayout()
+        hbox1 = QtWidgets.QHBoxLayout()
         hbox1.addWidget(buttonInit)
         hbox1.addWidget(buttonStart)
         hbox1.addWidget(buttonStop)
         hbox1.addStretch()
 
-        hbox2 = QtGui.QHBoxLayout()
+        hbox2 = QtWidgets.QHBoxLayout()
         #self.paramMonitor.setFixedHeight(180) #ROBINLIN
         hbox2.addWidget(self.paramMonitor)
 
-        hbox3 = QtGui.QHBoxLayout()
+        hbox3 = QtWidgets.QHBoxLayout()
         #self.varMonitor.setFixedHeight(180) #ROBINLIN
         hbox3.addWidget(self.varMonitor)
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addLayout(hbox1)
         vbox.addLayout(hbox2)
         vbox.addLayout(hbox3)
@@ -153,7 +153,7 @@ class CtaStrategyManager(QtGui.QGroupBox):
 
 
 ########################################################################
-class CtaEngineManager(QtGui.QWidget):
+class CtaEngineManager(QtWidgets.QWidget):
     """CTA引擎管理组件"""
     signal = QtCore.pyqtSignal(type(Event()))
 
@@ -179,11 +179,11 @@ class CtaEngineManager(QtGui.QWidget):
         self.setWindowTitle(text.CTA_STRATEGY)
 
         # 按钮
-        loadButton = QtGui.QPushButton(text.LOAD_STRATEGY)
-        initAllButton = QtGui.QPushButton(text.INIT_ALL)
-        startAllButton = QtGui.QPushButton(text.START_ALL)
-        stopAllButton = QtGui.QPushButton(text.STOP_ALL)
-        savePositionButton = QtGui.QPushButton(text.SAVE_POSITION_DATA)
+        loadButton = QtWidgets.QPushButton(text.LOAD_STRATEGY)
+        initAllButton = QtWidgets.QPushButton(text.INIT_ALL)
+        startAllButton = QtWidgets.QPushButton(text.START_ALL)
+        stopAllButton = QtWidgets.QPushButton(text.STOP_ALL)
+        savePositionButton = QtWidgets.QPushButton(text.SAVE_POSITION_DATA)
 
         loadButton.clicked.connect(self.load)
         initAllButton.clicked.connect(self.initAll)
@@ -192,16 +192,16 @@ class CtaEngineManager(QtGui.QWidget):
         savePositionButton.clicked.connect(self.ctaEngine.savePosition)
 
         # 滚动区域，放置所有的CtaStrategyManager
-        self.scrollArea = QtGui.QScrollArea()
+        self.scrollArea = QtWidgets.QScrollArea()
         self.scrollArea.setWidgetResizable(True)
 
         # CTA组件的日志监控
-        self.ctaLogMonitor = QtGui.QTextEdit()
+        self.ctaLogMonitor = QtWidgets.QTextEdit()
         self.ctaLogMonitor.setReadOnly(True)
         self.ctaLogMonitor.setMaximumHeight(200)
 
         # 设置布局
-        hbox2 = QtGui.QHBoxLayout()
+        hbox2 = QtWidgets.QHBoxLayout()
         hbox2.addWidget(loadButton)
         hbox2.addWidget(initAllButton)
         hbox2.addWidget(startAllButton)
@@ -209,7 +209,7 @@ class CtaEngineManager(QtGui.QWidget):
         hbox2.addWidget(savePositionButton)
         hbox2.addStretch()
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addLayout(hbox2)
         vbox.addWidget(self.scrollArea)
         vbox.addWidget(self.ctaLogMonitor)
@@ -220,8 +220,8 @@ class CtaEngineManager(QtGui.QWidget):
     #----------------------------------------------------------------------
     def initStrategyManager(self):
         """初始化策略管理组件界面"""
-        w = QtGui.QWidget()
-        vbox = QtGui.QVBoxLayout()
+        w = QtWidgets.QWidget()
+        vbox = QtWidgets.QVBoxLayout()
 
         for name in self.ctaEngine.strategyDict.keys():
             strategyManager = CtaStrategyManager(self.ctaEngine, self.eventEngine, name)
@@ -277,11 +277,11 @@ class CtaEngineManager(QtGui.QWidget):
     #----------------------------------------------------------------------
     def closeEvent(self, event):
         """关闭窗口时的事件"""
-        reply = QtGui.QMessageBox.question(self, text.SAVE_POSITION_DATA,
-                                           text.SAVE_POSITION_QUESTION, QtGui.QMessageBox.Yes |
-                                           QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        reply = QtWidgets.QMessageBox.question(self, text.SAVE_POSITION_DATA,
+                                           text.SAVE_POSITION_QUESTION, QtWidgets.QMessageBox.Yes |
+                                           QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        if reply == QtGui.QMessageBox.Yes:
+        if reply == QtWidgets.QMessageBox.Yes:
             self.ctaEngine.savePosition()
 
         event.accept()

@@ -1,13 +1,13 @@
 # encoding: UTF-8
 
-from vnpy.trader.uiQt import QtGui, QtWidgets, QtCore
+from vnpy.trader.uiQt import QtWidgets, QtWidgets, QtCore
 
-COLOR_BID = QtGui.QColor(255,174,201)
-COLOR_ASK = QtGui.QColor(160,255,160)
-COLOR_STRIKE = QtGui.QColor(0,0,160)
-COLOR_POS = QtGui.QColor(225,255,255)
-COLOR_SYMBOL = QtGui.QColor('white')
-COLOR_BLACK = QtGui.QColor('black')
+COLOR_BID = QtWidgets.QColor(255,174,201)
+COLOR_ASK = QtWidgets.QColor(160,255,160)
+COLOR_STRIKE = QtWidgets.QColor(0,0,160)
+COLOR_POS = QtWidgets.QColor(225,255,255)
+COLOR_SYMBOL = QtWidgets.QColor('white')
+COLOR_BLACK = QtWidgets.QColor('black')
 
 CALL_SUFFIX = '_call'
 PUT_SUFFIX = '_put'

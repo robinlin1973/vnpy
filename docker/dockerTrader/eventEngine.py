@@ -65,7 +65,7 @@ class EventEngine(object):
         
         # 计时器，用于触发计时器事件
         # 第三方模块
-        from PyQt4.QtCore import QTimer
+        from PyQt5.QtCore import QTimer
 
         self.__timer = QTimer()
         self.__timer.timeout.connect(self.__onTimer)
@@ -340,7 +340,7 @@ def test():
     """测试函数"""
     import sys
     from datetime import datetime
-    from PyQt4.QtCore import QCoreApplication
+    from PyQt5.QtCore import QCoreApplication
     
     def simpletest(event):
         print(u'处理每秒触发的计时器事件：%s' % str(datetime.now()))

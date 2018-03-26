@@ -10,7 +10,7 @@ import sys
 import os
 from collections import OrderedDict
 
-from vnpy.trader.uiQt import QtCore, QtWidgets, QtGui
+from vnpy.trader.uiQt import QtCore, QtWidgets, QtWidgets
 
 
 # 常量定义
@@ -163,7 +163,7 @@ def runCalendarEditor():
     sys.setdefaultencoding('utf8')
     
     app = QtWidgets.QApplication(sys.argv)
-    app.setFont(QtGui.QFont(u'微软雅黑', 12))
+    app.setFont(QtWidgets.QFont(u'微软雅黑', 12))
     
     try:
         import qdarkstyle

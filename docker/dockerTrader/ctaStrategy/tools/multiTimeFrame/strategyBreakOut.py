@@ -273,9 +273,9 @@ class BreakOut(CtaTemplate):
 
 if __name__ == '__main__':
     # 提供直接双击回测的功能
-    # 导入PyQt4的包是为了保证matplotlib使用PyQt4而不是PySide，防止初始化出错
+    # 导入PyQt5的包是为了保证matplotlib使用PyQt5而不是PySide，防止初始化出错
     from ctaBacktestMultiTF import *
-    from PyQt4 import QtCore, QtGui
+    from PyQt5 import QtCore, QtWidgets
     import time
 
     '''

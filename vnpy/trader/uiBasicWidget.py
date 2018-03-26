@@ -11,12 +11,12 @@ from .vtEvent import *
 from .vtFunction import *
 from .vtGateway import *
 from . import vtText
-from .uiQt import QtGui, QtWidgets, QtCore, BASIC_FONT
+from .uiQt import QtWidgets, QtWidgets, QtCore, BASIC_FONT
 from .vtFunction import jsonPathDict
 from .vtConstant import *
 import pyqtgraph as pg
 import numpy as np
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 from pymongo import MongoClient
 from pymongo.errors import *
 from datetime import datetime, timedelta
@@ -87,9 +87,9 @@ class DirectionCell(QtWidgets.QTableWidgetItem):
     def setContent(self, text):
         """设置内容"""
         if text == DIRECTION_LONG or text == DIRECTION_NET:
-            self.setForeground(QtGui.QColor('red'))
+            self.setForeground(QtWidgets.QColor('red'))
         elif text == DIRECTION_SHORT:
-            self.setForeground(QtGui.QColor('green'))
+            self.setForeground(QtWidgets.QColor('green'))
         self.setText(text)
 
 
@@ -130,8 +130,8 @@ class BidCell(QtWidgets.QTableWidgetItem):
         super(BidCell, self).__init__()
         self.data = None
 
-        self.setForeground(QtGui.QColor('black'))
-        self.setBackground(QtGui.QColor(255,174,201))
+        self.setForeground(QtWidgets.QColor('black'))
+        self.setBackground(QtWidgets.QColor(255,174,201))
 
         if text:
             self.setContent(text)
@@ -152,8 +152,8 @@ class AskCell(QtWidgets.QTableWidgetItem):
         super(AskCell, self).__init__()
         self.data = None
 
-        self.setForeground(QtGui.QColor('black'))
-        self.setBackground(QtGui.QColor(160,255,160))
+        self.setForeground(QtWidgets.QColor('black'))
+        self.setBackground(QtWidgets.QColor(160,255,160))
 
         if text:
             self.setContent(text)
@@ -419,7 +419,7 @@ class BasicMonitor(QtWidgets.QTableWidget):
     #----------------------------------------------------------------------
     def contextMenuEvent(self, event):
         """右键点击事件"""
-        self.menu.popup(QtGui.QCursor.pos())
+        self.menu.popup(QtWidgets.QCursor.pos())
 
 
 ########################################################################
@@ -1466,15 +1466,15 @@ class PriceWidget(QtWidgets.QWidget):
         """初始化界面"""
         self.setWindowTitle(u'Price')
 
-        self.vbl_1 = QtGui.QVBoxLayout()
+        self.vbl_1 = QtWidgets.QVBoxLayout()
         self.initplotTick()  # plotTick初始化
 
-        self.vbl_2 = QtGui.QVBoxLayout()
+        self.vbl_2 = QtWidgets.QVBoxLayout()
         self.initplotKline()  # plotKline初始化
         self.initplotTendency()  # plot分时图的初始化
 
         # 整体布局
-        self.hbl = QtGui.QHBoxLayout()
+        self.hbl = QtWidgets.QHBoxLayout()
         self.hbl.addLayout(self.vbl_1)
         self.hbl.addLayout(self.vbl_2)
         self.setLayout(self.hbl)

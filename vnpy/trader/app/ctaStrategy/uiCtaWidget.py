@@ -7,7 +7,7 @@ CTA模块相关的GUI控制组件
 
 from vnpy.event import Event
 from vnpy.trader.vtEvent import *
-from vnpy.trader.uiBasicWidget import QtGui, QtCore, QtWidgets, BasicCell
+from vnpy.trader.uiBasicWidget import QtWidgets, QtCore, QtWidgets, BasicCell
 
 from .ctaBase import EVENT_CTA_LOG, EVENT_CTA_STRATEGY
 from .language import text
@@ -31,7 +31,7 @@ class GridControlDictMonitor(QtWidgets.QTableWidget):
         self.horizontalHeader().setVisible(True)
         self.setColumnCount(4)
         self.setHorizontalHeaderLabels(['grid','buy_id','position','sell_id'])
-#        self.horizontalHeaderItem().setTextAlignment(QtGui.AlignHCenter)
+#        self.horizontalHeaderItem().setTextAlignment(QtWidgets.AlignHCenter)
     #
     #     self.setColumnWidth(1, 150)
 
@@ -217,7 +217,7 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
 #         self.table.setColumnCount(5)
 #         layout.addWidget(self.led, 0, 0)
 #         layout.addWidget(self.table, 1, 0)
-#         self.table.setItem(1, 0, QtGui.QTableWidgetItem(self.led.text()))
+#         self.table.setItem(1, 0, QtWidgets.QTableWidgetItem(self.led.text()))
 #
 #
 # ########################################################################

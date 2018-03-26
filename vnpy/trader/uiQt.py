@@ -2,7 +2,7 @@
 
 import platform
 
-from qtpy import QtWidgets, QtGui, QtCore
+from qtpy import QtWidgets, QtWidgets, QtCore, QtGui
 
 from vnpy.trader.vtGlobal import globalSetting
 from vnpy.trader.vtFunction import loadIconPath
@@ -11,7 +11,7 @@ BASIC_FONT = None
 try:
     family = globalSetting['fontFamily']
     size = globalSetting['fontSize']
-    BASIC_FONT = QtGui.QFont(family, size)
+    BASIC_FONT = QtWidgets.QFont(family, size)
 except:
     BASIC_FONT = QtGui.QFont(u'微软雅黑', 12)
 

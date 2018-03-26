@@ -7,7 +7,7 @@
 
 from vnpy.event import Event
 
-from vnpy.trader.uiBasicWidget import QtGui, QtWidgets, QtCore
+from vnpy.trader.uiBasicWidget import QtWidgets, QtWidgets, QtCore
 from vnpy.trader.app.riskManager.language import text
 
 

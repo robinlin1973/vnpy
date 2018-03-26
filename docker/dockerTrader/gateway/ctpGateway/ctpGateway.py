@@ -1467,7 +1467,7 @@ class CtpTdApi(TdApi):
 #----------------------------------------------------------------------
 def test():
     """测试"""
-    from PyQt4 import QtCore
+    from PyQt5 import QtCore
     import sys
     
     def print_log(event):

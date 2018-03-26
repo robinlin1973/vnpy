@@ -10,7 +10,7 @@ from riskManager.uiRmWidget import RmEngineManager
 
 
 ########################################################################
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     """主窗口"""
     signalStatusBar = QtCore.pyqtSignal(type(Event()))
 
@@ -142,7 +142,7 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------------------------------------
     def initStatusBar(self):
         """初始化状态栏"""
-        self.statusLabel = QtGui.QLabel()
+        self.statusLabel = QtWidgets.QLabel()
         self.statusLabel.setAlignment(QtCore.Qt.AlignLeft)
         
         self.statusBar().addPermanentWidget(self.statusLabel)
@@ -188,7 +188,7 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------------------------------------
     def createAction(self, actionName, function):
         """创建操作功能"""
-        action = QtGui.QAction(actionName, self)
+        action = QtWidgets.QAction(actionName, self)
         action.triggered.connect(function)
         return action
         
@@ -246,11 +246,11 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------------------------------------
     def closeEvent(self, event):
         """关闭事件"""
-        reply = QtGui.QMessageBox.question(self, vtText.EXIT,
-                                           vtText.CONFIRM_EXIT, QtGui.QMessageBox.Yes | 
-                                           QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        reply = QtWidgets.QMessageBox.question(self, vtText.EXIT,
+                                           vtText.CONFIRM_EXIT, QtWidgets.QMessageBox.Yes |
+                                           QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        if reply == QtGui.QMessageBox.Yes: 
+        if reply == QtWidgets.QMessageBox.Yes:
             for widget in self.widgetDict.values():
                 widget.close()
             self.saveWindowSettings('custom')
@@ -264,7 +264,7 @@ class MainWindow(QtGui.QMainWindow):
     def createDock(self, widgetClass, widgetName, widgetArea):
         """创建停靠组件"""
         widget = widgetClass(self.mainEngine, self.eventEngine)
-        dock = QtGui.QDockWidget(widgetName)
+        dock = QtWidgets.QDockWidget(widgetName)
         dock.setWidget(widget)
         dock.setObjectName(widgetName)
         dock.setFeatures(dock.DockWidgetFloatable|dock.DockWidgetMovable)
@@ -282,9 +282,9 @@ class MainWindow(QtGui.QMainWindow):
     def loadWindowSettings(self, settingName):
         """载入窗口设置"""
         settings = QtCore.QSettings('vn.trader', settingName)
-        # 这里由于PyQt4的版本不同，settings.value('state')调用返回的结果可能是：
+        # 这里由于PyQt5的版本不同，settings.value('state')调用返回的结果可能是：
         # 1. None（初次调用，注册表里无相应记录，因此为空）
-        # 2. QByteArray（比较新的PyQt4）
+        # 2. QByteArray（比较新的PyQt5）
         # 3. QVariant（以下代码正确执行所需的返回结果）
         # 所以为了兼容考虑，这里加了一个try...except，如果是1、2的情况就pass
         # 可能导致主界面的设置无法载入（每次退出时的保存其实是成功了）
@@ -302,7 +302,7 @@ class MainWindow(QtGui.QMainWindow):
 
 
 ########################################################################
-class AboutWidget(QtGui.QDialog):
+class AboutWidget(QtWidgets.QDialog):
     """显示关于信息"""
 
     #----------------------------------------------------------------------
@@ -328,11 +328,11 @@ class AboutWidget(QtGui.QDialog):
             
             """
 
-        label = QtGui.QLabel()
+        label = QtWidgets.QLabel()
         label.setText(text)
         label.setMinimumWidth(500)
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(label)
 
         self.setLayout(vbox)

@@ -3,7 +3,7 @@
 import sys
 from time import sleep
 
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 
 from vnctpmd import *
 
@@ -119,7 +119,7 @@ def main():
     reqid = 0
     
     # 创建Qt应用对象，用于事件循环
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     # 创建API对象
     api = TestMdApi()

@@ -5,7 +5,7 @@ sys.path.append('./')
 
 from time import sleep
 
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 
 from vnctptd import *
 
@@ -107,7 +107,7 @@ def main():
     reqid = 0
     
     # 创建Qt应用对象，用于事件循环
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     # 创建API对象，测试通过
     api = TestTdApi()
