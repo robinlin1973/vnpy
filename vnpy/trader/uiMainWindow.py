@@ -246,6 +246,7 @@ class MainWindow(QtWidgets.QMainWindow):
     #----------------------------------------------------------------------
     def closeEvent(self, event):
         """关闭事件"""
+        print "uiMainWindow:closeEvent"
         reply = QtWidgets.QMessageBox.question(self, vtText.EXIT,
                                            vtText.CONFIRM_EXIT, QtWidgets.QMessageBox.Yes | 
                                            QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)

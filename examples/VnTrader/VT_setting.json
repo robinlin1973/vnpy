@@ -10,9 +10,11 @@
 	"language": "chinese",
 
 	"logActive": true,
-	"logLevel": "debug",
+	"logLevel": "info",
 	"logConsole": true,
 	"logFile": true,
 
-	"tdPenalty": ["IF", "IH", "IC"]
+	"tdPenalty": ["IF", "IH", "IC"],
+	"start_Gateway": "CTP",
+	"start_App": "CtaStrategy"
 }

@@ -343,3 +343,8 @@ class CtaEngineManager(QtWidgets.QWidget):
         """注册事件监听"""
         self.signal.connect(self.updateCtaLog)
         self.eventEngine.register(EVENT_CTA_LOG, self.signal.emit)
+
+    #----------------------------------------------------------------------
+    def closeEvent(self, event):
+        print "uiCtaWidget:closeEvent"
+        self.stopAll()

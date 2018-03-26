@@ -23,6 +23,9 @@ from vnpy.trader.gateway import (femasGateway, xspeedGateway,
 
 # 加载上层应用
 from vnpy.trader.app import (riskManager, ctaStrategy)
+from vnpy.trader.vtGlobal import globalSetting
+
+import itchat
 
 # ----------------------------------------------------------------------
 def runChildProcess():
@@ -52,8 +55,8 @@ def runChildProcess():
     me.addApp(ctaStrategy)
 
     # 自动连接
-    me.connect('CTP')  # ROBIN LIN
-
+    if globalSetting['start_Gateway']!=None:
+        me.connect(globalSetting['start_Gateway'])  # ROBIN LIN
 
     # 创建主窗口
     mw = MainWindow(me, ee)
@@ -61,7 +64,7 @@ def runChildProcess():
 
     # 自动显示CTA策略窗口
     for appDetail in mw.appDetailList:
-        if appDetail['appName'] == 'CtaStrategy':
+        if appDetail['appName'] == globalSetting['start_App']:#'CtaStrategy':
             appName = appDetail['appName']
             try:
                 mw.widgetDict[appName].show()
@@ -80,25 +83,41 @@ def runParentProcess():
     le = LogEngine()
     le.setLogLevel(le.LEVEL_INFO)
     le.addConsoleHandler()
+    le.addFileHandler()
 
     le.info(u'启动CTA策略守护父进程')
 
+    #DAY_START = time(8, 55)         # 日盘启动和停止时间
     DAY_START = time(8, 55)         # 日盘启动和停止时间
-    DAY_END = time(15, 35)
+    DAY_END = time(15, 05)
+    #DAY_END = time(8, 14)
 
     NIGHT_START = time(20, 55)      # 夜盘启动和停止时间
+    #NIGHT_START = time(16, 43)      # 夜盘启动和停止时间
     NIGHT_END = time(23, 35)
+    #NIGHT_END = time(16, 44)
+
+    SHUT_START = time(15, 05)
+    SHUT_END = time(20, 55)
 
     p = None        # 子进程句柄
 
     while True:
         currentTime = datetime.now().time()
-        recording = False
+        weekno = datetime.today().weekday()
+        #recording = False
+        recording = True
+        if not itchat.instanceList[0].alive:
+            itchat.auto_login(hotReload=True)
+
 
         # 判断当前处于的时间段
-        if ((currentTime >= DAY_START and currentTime <= DAY_END) or
-            (currentTime >= NIGHT_START and currentTime <= NIGHT_END)):
-            recording = True
+        # if ((currentTime >= DAY_START and currentTime <= DAY_END) or
+        #     (currentTime >= NIGHT_START and currentTime <= NIGHT_END)):
+        #     recording = True
+        if(currentTime >= SHUT_START and currentTime <= SHUT_END) or weekno >= 5: #shut at weekend as well
+            recording = False
+
 
         # 记录时间则需要启动子进程
         if recording and p is None:
