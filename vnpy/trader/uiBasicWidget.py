@@ -11,7 +11,7 @@ from .vtEvent import *
 from .vtFunction import *
 from .vtGateway import *
 from . import vtText
-from .uiQt import QtWidgets, QtWidgets, QtCore, BASIC_FONT
+from .uiQt import QtWidgets, QtCore, BASIC_FONT
 from .vtFunction import jsonPathDict
 from .vtConstant import *
 import pyqtgraph as pg
@@ -87,9 +87,9 @@ class DirectionCell(QtWidgets.QTableWidgetItem):
     def setContent(self, text):
         """设置内容"""
         if text == DIRECTION_LONG or text == DIRECTION_NET:
-            self.setForeground(QtWidgets.QColor('red'))
+            self.setForeground(QtGui.QColor('red'))
         elif text == DIRECTION_SHORT:
-            self.setForeground(QtWidgets.QColor('green'))
+            self.setForeground(QtGui.QColor('green'))
         self.setText(text)
 
 
